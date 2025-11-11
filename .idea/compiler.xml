@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile name="Gradle Imported" enabled="true">
+        <outputRelativeToContentRoot value="true" />
+        <processorPath useClasspath="false">
+          <entry name="$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.42/8365263844ebb62398e0dc33057ba10ba472d3b8/lombok-1.18.42.jar" />
+        </processorPath>
+        <module name="filter.main" />
+      </profile>
+    </annotationProcessing>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="com.codeit.login" options="-parameters" />
+      <module name="com.codeit.login.main" options="-parameters" />
+      <module name="com.codeit.login.test" options="-parameters" />
+      <module name="filter" options="-parameters" />
+      <module name="filter.main" options="-parameters" />
+      <module name="filter.test" options="-parameters" />
+      <module name="login" options="-parameters" />
+      <module name="login.main" options="-parameters" />
+      <module name="login.test" options="-parameters" />
+      <module name="security_basic" options="-parameters" />
+      <module name="security_basic.main" options="-parameters" />
+      <module name="security_basic.test" options="-parameters" />
+    </option>
+  </component>
+</project>

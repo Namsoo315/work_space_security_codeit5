@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>API 데모 인덱스</title>
+</head>
+<body>
+<h1>API 데모</h1>
+
+<h2>인증</h2>
+<ul>
+    <li><a href="/login">/login 이동</a></li>
+    <li>
+        <form action="/logout" method="post" style="display:inline;">
+            <button type="submit">로그아웃(POST /logout)</button>
+        </form>
+    </li>
+</ul>
+
+<h2>관리(Admin)</h2>
+<ul>
+    <li><a href="/admin/audit" target="_blank" rel="noopener">GET /admin/audit</a></li>
+    <li><a href="/admin/dashboard" target="_blank" rel="noopener">GET /admin/dashboard</a></li>
+</ul>
+
+<h2>테스트(API)</h2>
+<ul>
+    <li><a href="/api/test/fast" target="_blank" rel="noopener">GET /api/test/fast</a></li>
+    <li><a href="/api/test/slow" target="_blank" rel="noopener">GET /api/test/slow</a></li>
+    <li><a href="/api/test/critical" target="_blank" rel="noopener">GET /api/test/critical</a></li>
+    <li><a href="/api/test/error" target="_blank" rel="noopener">GET /api/test/error (에러)</a></li>
+</ul>
+
+<h2>POST /api/test/data (JSON)</h2>
+<p>본문(JSON)을 입력하고 전송한다.</p>
+<textarea id="jsonInput" rows="8" cols="60">
+{
+  "title": "샘플 제목",
+  "content": "샘플 내용",
+  "password": "secret"
+}
+</textarea>
+<br>
+<button id="btnSend">전송</button>
+
+<h3>응답</h3>
+<pre id="out">(응답 표시)</pre>
+
+<script>
+    const $ = (id) => document.getElementById(id);
+
+    $('btnSend').addEventListener('click', async () => {
+        let payload;
+        try {
+            payload = JSON.parse($('jsonInput').value || '{}');
+        } catch (e) {
+            $('out').textContent = 'JSON 파싱 오류: ' + e.message;
+            return;
+        }
+
+        const res = await fetch('/api/test/data', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload),
+        });
+
+        const text = await res.text();
+        try {
+            $('out').textContent = JSON.stringify(JSON.parse(text), null, 2);
+        } catch {
+            $('out').textContent = text;
+        }
+    });
+</script>
+</body>
+</html>

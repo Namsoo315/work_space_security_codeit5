@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>Security 데모 (세션 기반)</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<h1>Security 데모 (세션 기반)</h1>
+
+<h2>인증 이동</h2>
+<ul>
+    <li><a href="/login" >/login</a></li>
+    <li><a href="/logout" >/logout</a></li>
+</ul>
+
+<hr>
+
+<h2>요청 본문 (POST /api/board 용)</h2>
+<label>title: <input id="title" type="text" value="샘플 제목"></label>
+<label>content: <input id="content" type="text" value="샘플 내용"></label>
+
+<hr>
+
+<h2>세션으로 접근 테스트</h2>
+<ol>
+    <li><a href="/api/public/info" data-method="GET">GET /api/public/info</a></li>
+    <li><a href="/api/board" data-method="GET">GET /api/board (USER/ADMIN 필요)</a></li>
+    <li><a href="/api/board" data-method="POST">POST /api/board (USER/ADMIN 필요)</a></li>
+    <li><a href="/api/admin/users" data-method="GET">GET /api/admin/users (ADMIN 필요)</a></li>
+</ol>
+
+<div>상태: <span id="status">-</span></div>
+<div>응답 헤더:</div>
+<pre id="respHeaders" style="white-space: pre-wrap;"></pre>
+<div>본문:</div>
+<pre id="output" style="white-space: pre-wrap;"></pre>
+
+<script>
+    const $ = (id) => document.getElementById(id);
+    const statusEl  = $("status");
+    const outputEl  = $("output");
+    const headersEl = $("respHeaders");
+
+    function getCookie(name) {
+        const m = document.cookie.match(new RegExp("(^|; )" + name + "=([^;]*)"));
+        return m ? decodeURIComponent(m[2]) : null;
+    }
+
+    function attachCsrf(headers) {
+        // Spring Security에서 CookieCsrfTokenRepository를 쓴 경우 쿠키 이름이 XSRF-TOKEN
+        const csrf = getCookie("XSRF-TOKEN") || getCookie("X-CSRF-TOKEN");
+        if (csrf) headers["X-CSRF-TOKEN"] = csrf;
+    }
+
+    async function call(method, url, bodyObj) {
+        statusEl.textContent = "요청 중...";
+        outputEl.textContent = "";
+        headersEl.textContent = "";
+
+        const headers = { Accept: "application/json" };
+        let data;
+
+        if (bodyObj != null) {
+            headers["Content-Type"] = "application/json;charset=UTF-8";
+            data = JSON.stringify(bodyObj);
+            attachCsrf(headers); // CSRF 토큰이 있으면 자동 첨부
+        }
+
+        try {
+            const res = await axios({
+                method, url, data,
+                headers,
+                withCredentials: true // 세션 쿠키 전송
+            });
+
+            statusEl.textContent = res.status + " " + res.statusText + " (성공)";
+            const raw = [];
+            res.headers && Object.keys(res.headers).forEach(k => raw.push(k + ": " + res.headers[k]));
+            headersEl.textContent = raw.join("\n") || "(헤더 없음)";
+
+            if (typeof res.data === "object") {
+                outputEl.textContent = JSON.stringify(res.data, null, 2);
+            } else {
+                outputEl.textContent = String(res.data ?? "");
+            }
+        } catch (err) {
+            if (err.response) {
+                statusEl.textContent = err.response.status + " " + err.response.statusText + " (실패)";
+                const raw = [];
+                err.response.headers && Object.keys(err.response.headers).forEach(k => raw.push(k + ": " + err.response.headers[k]));
+                headersEl.textContent = raw.join("\n") || "(헤더 없음)";
+
+                const d = err.response.data;
+                try {
+                    outputEl.textContent = typeof d === "object" ? JSON.stringify(d, null, 2) : String(d ?? "");
+                } catch {
+                    outputEl.textContent = "(본문 파싱 실패)";
+                }
+            } else {
+                statusEl.textContent = "요청 실패";
+                outputEl.textContent = String(err);
+            }
+        }
+    }
+
+    // 링크 가로채서 세션 기반으로 호출
+    document.querySelectorAll("a[data-method]").forEach(a => {
+        a.addEventListener("click", (e) => {
+            e.preventDefault();
+            const url = a.getAttribute("href");
+            const method = (a.getAttribute("data-method") || "GET").toUpperCase();
+            const body = method === "POST" ? {
+                title: document.getElementById("title").value,
+                content: document.getElementById("content").value
+            } : null;
+            call(method, url, body);
+        });
+    });
+
+</script>
+</body>
+</html>

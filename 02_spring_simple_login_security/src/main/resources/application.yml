@@ -1,0 +1,19 @@
+#server:
+#  servlet:
+#    session:
+#      timeout: 30m # ?? 1?
+#
+server:
+  port: 8080 #8443 #8080
+  ssl:
+    enabled: false                   # HTTPS를 실제로 사용할 때 true
+    key-store: classpath:ssl/localhost+2.p12
+    key-store-type: PKCS12
+    key-store-password: changeit     # mkcert 발급 시 지정한 비밀번호
+
+  servlet:
+    session:
+      cookie:
+        secure: true                 # JSESSIONID를 HTTPS에서만 전송
+        http-only: true              # JS로 JSESSIONID 접근 금지(권장)
+        same-site: Lax               # 크로스사이트가 필요하면 None(+Secure 필수)

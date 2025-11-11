@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>Security 데모 링크 페이지</title>
+    <!-- axios 사용 (CDN) -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+<h1>Security 데모 링크</h1>
+
+<h2>요청 본문 (POST /api/board 용)</h2>
+<label>title: <input id="title" type="text" value="샘플 제목"></label>
+<label>content: <input id="content" type="text" value="샘플 내용"></label>
+
+<hr>
+
+<h2>비인증 접근 (자격 없음)</h2>
+<ol>
+    <li><a href="/api/public/info" data-method="GET" data-role="none">GET /api/public/info</a></li>
+    <li><a href="/api/board" data-method="GET" data-role="none">GET /api/board</a></li>
+    <li><a href="/api/board" data-method="POST" data-role="none">POST /api/board</a></li>
+    <li><a href="/api/admin/users" data-method="GET" data-role="none">GET /api/admin/users</a></li>
+</ol>
+<div>결과: <span id="res-none-status">-</span></div>
+<div>본문:</div>
+<pre id="res-none-body"></pre>
+
+<hr>
+
+<h2>USER 자격으로 접근 (user / 1234)</h2>
+<ol>
+    <li><a href="/api/public/info" data-method="GET" data-role="user">GET /api/public/info</a></li>
+    <li><a href="/api/board" data-method="GET" data-role="user">GET /api/board</a></li>
+    <li><a href="/api/board" data-method="POST" data-role="user">POST /api/board</a></li>
+    <li><a href="/api/admin/users" data-method="GET" data-role="user">GET /api/admin/users</a></li>
+</ol>
+<div>결과: <span id="res-user-status">-</span></div>
+<div>본문:</div>
+<pre id="res-user-body"></pre>
+
+<hr>
+
+<h2>ADMIN 자격으로 접근 (admin / admin)</h2>
+<ol>
+    <li><a href="/api/public/info" data-method="GET" data-role="admin">GET /api/public/info</a></li>
+    <li><a href="/api/board" data-method="GET" data-role="admin">GET /api/board</a></li>
+    <li><a href="/api/board" data-method="POST" data-role="admin">POST /api/board</a></li>
+    <li><a href="/api/admin/users" data-method="GET" data-role="admin">GET /api/admin/users</a></li>
+</ol>
+<div>결과: <span id="res-admin-status">-</span></div>
+<div>본문:</div>
+<pre id="res-admin-body"></pre>
+
+<hr>
+
+<h2>현재 자격 요약</h2>
+<ul>
+    <li>비인증: Authorization 헤더 없이 요청 → 공개만 성공, 나머지는 401/403 기대</li>
+    <li>USER: user/1234 Basic 인증 → /api/board 계열 성공, /api/admin/** 는 403 기대</li>
+    <li>ADMIN: admin/admin Basic 인증 → /api/board, /api/admin/** 모두 성공 기대</li>
+</ul>
+
+<script>
+    // 자격별 기본 계정
+    const CREDS = {
+        none: null,
+        user: { username: "user",  password: "1234" },
+        admin:{ username: "admin", password: "admin" }
+    };
+
+    // 섹션별 결과 출력 요소
+    const views = {
+        none : { status: document.getElementById("res-none-status"),  body: document.getElementById("res-none-body") },
+        user : { status: document.getElementById("res-user-status"),  body: document.getElementById("res-user-body") },
+        admin: { status: document.getElementById("res-admin-status"), body: document.getElementById("res-admin-body") }
+    };
+
+    // 공통 호출 함수 (링크 기반)
+    async function callByLink(e) {
+        e.preventDefault();
+        const a = e.currentTarget;
+        const url = a.getAttribute("href");
+        const method = (a.getAttribute("data-method") || "GET").toUpperCase();
+        const role = a.getAttribute("data-role"); // none | user | admin
+        const view = views[role];
+
+        // POST 본문
+        let data = undefined;
+        if (method === "POST") {
+            data = {
+                title: document.getElementById("title").value,
+                content: document.getElementById("content").value
+            };
+        }
+
+        // axios 옵션
+        const opts = { method, url, headers: { Accept: "application/json" } };
+
+        if (data) {
+            opts.data = data;
+            opts.headers["Content-Type"] = "application/json;charset=UTF-8";
+        }
+
+        // 자격 설정: none 은 Authorization 헤더 없음
+        if (role !== "none") {
+            const { username, password } = CREDS[role];
+            // axios 기본 auth 옵션 사용 → Basic 헤더 자동 설정
+            opts.auth = { username, password };
+        }
+
+        // 초기화
+        view.status.textContent = "요청 중...";
+        view.body.textContent = "";
+
+        try {
+            const res = await axios(opts);
+            view.status.textContent = res.status + " " + res.statusText + " (성공)";
+            if (typeof res.data === "object") {
+                view.body.textContent = JSON.stringify(res.data, null, 2);
+            } else {
+                view.body.textContent = String(res.data || "");
+            }
+        } catch (err) {
+            if (err.response) {
+                const { status, statusText, data } = err.response;
+                view.status.textContent = status + " " + statusText + " (실패)";
+                try {
+                    if (typeof data === "object") {
+                        view.body.textContent = JSON.stringify(data, null, 2);
+                    } else {
+                        view.body.textContent = String(data || "");
+                    }
+                } catch {
+                    view.body.textContent = "(본문 파싱 실패)";
+                }
+            } else {
+                view.status.textContent = "요청 실패";
+                view.body.textContent = String(err);
+            }
+        }
+    }
+
+    // axios로 호출하는 링크들만 가로채기
+    document.querySelectorAll("a[data-method][data-role]").forEach(a => {
+        a.addEventListener("click", callByLink);
+    });
+</script>
+</body>
+</html>

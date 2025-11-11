@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>로그인 성공</title>
+</head>
+<body>
+<h2>로그인 성공!</h2>
+
+<p>
+  환영합니다,
+  <strong th:text="${user.username}">사용자</strong> 님!
+</p>
+
+<div style="margin-top:10px;">
+  <a th:href="@{/home}">홈으로 이동</a>
+</div>
+
+
+
+<!-- 클라이언트에서 읽은 쿠키 값 출력 섹션 -->
+<section style="margin-top:16px;">
+  <h3>클라이언트 쿠키 확인</h3>
+  <p id="envInfo"></p>
+  <div>
+    <strong>document.cookie(raw)</strong>
+    <pre id="cookieRaw" style="background:#f7f7f7;padding:8px;border:1px solid #ddd;overflow:auto;"></pre>
+  </div>
+  <div style="margin-top:8px;">
+    <strong>파싱 결과</strong>
+    <ul id="cookieParsed"></ul>
+  </div>
+  <div style="margin-top:8px;color:#666;">
+    <small>
+      참고: HttpOnly가 설정된 쿠키는 자바스크립트에서 읽을 수 없으므로 비어 있거나 표시되지 않을 수 있다
+    </small>
+  </div>
+</section>
+
+<script>
+  // 쿠키 파싱 유틸
+  function parseCookies() {
+    const out = {};
+    const raw = document.cookie || "";
+    raw.split(";").forEach(kv => {
+      const [k, v] = kv.split("=");
+      if (!k) return;
+      const key = k.trim();
+      const val = v ? decodeURIComponent(v.trim()) : "";
+      if (key) out[key] = val;
+    });
+    return out;
+  }
+
+  function getCookie(name) {
+    const m = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
+    return m ? decodeURIComponent(m[1]) : "";
+  }
+
+  // 출력 렌더링
+  (function renderCookieDiagnostics() {
+    // 환경 정보
+    const env = `protocol=${location.protocol}, cookieEnabled=${navigator.cookieEnabled}`;
+    document.getElementById("envInfo").textContent = env;
+
+    // raw 출력
+    document.getElementById("cookieRaw").textContent = document.cookie || "(빈 문자열)";
+
+    // 파싱 출력: 관심 쿠키 우선 표시 + 전체 나열
+    const parsed = parseCookies();
+    const ul = document.getElementById("cookieParsed");
+
+    // 관심 쿠키: cid, cpw
+    const cid = getCookie("cid");
+    const cpw = getCookie("cpw");
+
+    const liCid = document.createElement("li");
+    liCid.textContent = `cid = ${cid ? cid : "(HttpOnly 또는 미설정)"}`;
+    ul.appendChild(liCid);
+
+    const liCpw = document.createElement("li");
+    liCpw.textContent = `cpw = ${cpw ? cpw : "(HttpOnly 또는 미설정)"}`;
+    ul.appendChild(liCpw);
+
+    // 그 외 쿠키도 참고용으로 표시
+    Object.keys(parsed).forEach(k => {
+      if (k === "cid" || k === "cpw") return;
+      const li = document.createElement("li");
+      li.textContent = `${k} = ${parsed[k]}`;
+      ul.appendChild(li);
+    });
+  })();
+</script>
+
+</body>
+</html>

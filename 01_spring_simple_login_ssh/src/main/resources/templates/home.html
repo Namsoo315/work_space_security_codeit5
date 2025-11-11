@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>Home</title>
+</head>
+<body>
+<h2>HOME</h2>
+
+<!-- 로그인 상태 -->
+<div th:if="${user != null}">
+  <p>로그인 사용자: <strong th:text="${user.username}"></strong></p>
+
+  <form th:action="@{/logout}" method="post" style="margin-top:12px;">
+    <button type="submit">logout</button>
+  </form>
+</div>
+
+<!-- 비로그인 상태 -->
+<div th:if="${user == null}">
+  <p>로그인되지 않았습니다.</p>
+  <a th:href="@{/login}">로그인 하러 가기</a>
+</div>
+
+</body>
+</html>

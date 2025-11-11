@@ -1,0 +1,13 @@
+#server:
+#  servlet:
+#    session:
+#      timeout: 30m # ?? 1?
+#
+
+server:
+  port: 8443
+  ssl:
+    enabled: true
+    key-store: classpath:ssl/localhost+2.p12
+    key-store-type: PKCS12
+    key-store-password: changeit   # mkcert ?? ????

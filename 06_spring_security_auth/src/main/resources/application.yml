@@ -1,0 +1,14 @@
+pring:
+  datasource:
+    url: jdbc:h2:~/auth-test;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+  h2:
+    tcp:
+      enabled: true # H2 TCP 서버 활성화

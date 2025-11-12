@@ -7,7 +7,7 @@
         <processorPath useClasspath="false">
           <entry name="$PROJECT_DIR$/../.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.42/8365263844ebb62398e0dc33057ba10ba472d3b8/lombok-1.18.42.jar" />
         </processorPath>
-        <module name="auth.main" />
+        <module name="session.main" />
       </profile>
     </annotationProcessing>
   </component>
@@ -28,6 +28,9 @@
       <module name="security_basic" options="-parameters" />
       <module name="security_basic.main" options="-parameters" />
       <module name="security_basic.test" options="-parameters" />
+      <module name="session" options="-parameters" />
+      <module name="session.main" options="-parameters" />
+      <module name="session.test" options="-parameters" />
     </option>
   </component>
 </project>

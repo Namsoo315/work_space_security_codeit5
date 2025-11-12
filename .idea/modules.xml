@@ -5,6 +5,7 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/filter.main.iml" filepath="$PROJECT_DIR$/.idea/modules/filter.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/login.main.iml" filepath="$PROJECT_DIR$/.idea/modules/login.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/security_basic.main.iml" filepath="$PROJECT_DIR$/.idea/modules/security_basic.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/session.main.iml" filepath="$PROJECT_DIR$/.idea/modules/session.main.iml" />
       <module fileurl="file://$PROJECT_DIR$/work_space_security_codeit5.iml" filepath="$PROJECT_DIR$/work_space_security_codeit5.iml" />
     </modules>
   </component>

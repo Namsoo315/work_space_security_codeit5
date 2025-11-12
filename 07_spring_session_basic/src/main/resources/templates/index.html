@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Spring Security 세션 관리</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; max-width: 800px; }
+        .section { background-color: #f8f9fa; padding: 15px; margin: 15px 0; border-radius: 5px; }
+        .login-section { background-color: #d4edda; }
+        .session-section { background-color: #e2e3e5; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 8px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #e9ecef; }
+        .nav a { margin-right: 15px; color: #007bff; text-decoration: none; }
+    </style>
+</head>
+<body>
+<h1>Spring Security 세션 관리 데모</h1>
+
+<!-- 로그인 상태 -->
+<div class="section login-section">
+    <h3>🔐 인증 상태</h3>
+    <div sec:authorize="!isAuthenticated()">
+        <p><strong>상태:</strong> 미인증</p>
+        <a href="/login">로그인</a>
+    </div>
+    <div sec:authorize="isAuthenticated()">
+        <p><strong>사용자:</strong> <span th:text="${username}">사용자</span></p>
+        <p><strong>권한:</strong> <span th:text="${authorities}">권한</span></p>
+        <a href="/logout">로그아웃</a>
+    </div>
+</div>
+
+<!-- 세션 정보 -->
+<div class="section session-section" th:if="${sessionId}">
+    <h3>📊 HTTP 세션 정보</h3>
+    <table>
+        <tr><th>항목</th><th>값</th></tr>
+        <tr><td>세션 ID</td><td th:text="${sessionId}">-</td></tr>
+        <tr><td>생성 시간</td><td th:text="${creationTime}">-</td></tr>
+        <tr><td>마지막 접근</td><td th:text="${lastAccessedTime}">-</td></tr>
+        <tr><td>최대 비활성 시간</td><td th:text="${maxInactiveInterval} + '초'">-</td></tr>
+        <tr><td>SecurityContext 저장됨</td><td th:text="${hasSecurityContext ? 'YES' : 'NO'}">-</td></tr>
+    </table>
+</div>
+
+<!-- 데이터베이스 정보 -->
+<div class="section">
+    <h3>💾 데이터베이스 세션 저장 정보</h3>
+    <p><strong>JDBC URL:</strong> <code>jdbc:h2:~/session-test;AUTO_SERVER=TRUE</code></p>
+    <p><strong>Username:</strong> <code>sa</code></p>
+    <p><strong>Password:</strong> (비어있음)</p>
+    <p><strong>세션 테이블:</strong> <code>SPRING_SESSION</code></p>
+    <p><strong>세션 속성 테이블:</strong> <code>SPRING_SESSION_ATTRIBUTES</code></p>
+</div>
+
+</body>
+</html>

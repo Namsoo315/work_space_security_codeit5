@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <title>블로그 데모 (Spring Security + Axios)</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 16px;
+        }
+        h1 { font-size: 25px; margin-bottom: 8px; }
+        h2 { font-size: 20px; margin-top: 16px; margin-bottom: 8px; }
+        h3 { font-size: 18px; margin-top: 12px; margin-bottom: 6px; }
+
+        section {
+            margin-bottom: 24px;
+        }
+        label {
+            display: inline-block;
+            margin: 2px 8px 2px 0;
+        }
+        input, select, button {
+            font-size: 13px;
+            padding: 2px 4px;
+            margin: 2px;
+        }
+        button {
+            cursor: pointer;
+        }
+        .row {
+            margin-bottom: 4px;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 8px;
+            border-radius: 4px;
+            max-height: 260px;
+            overflow: auto;
+            font-family: "Fira Code", ui-monospace, Menlo, Monaco, Consolas, "Courier New", monospace;
+            font-size: 12px;
+        }
+        .small {
+            font-size: 12px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+<h1>블로그 데모 (Security + Session)</h1>
+<hr>
+
+<section id="sec-auth">
+    <h2>1. 인증 / 세션 / CSRF</h2>
+
+    <h3>1-1) CSRF 토큰</h3>
+    <div class="row">
+        <button id="btnFetchCsrf">CSRF 토큰 받기 (GET /api/auth/csrf-token)</button>
+        <span class="small">쿠키와 헤더에 설정됨</span>
+    </div>
+
+    <h3>1-2) 로그인 / 로그아웃</h3>
+    <div class="row">
+        <label>username:
+            <input id="login-username" value="user">
+        </label>
+        <label>password:
+            <input id="login-password" value="1234">
+        </label>
+
+        <!-- 리멤버미 체크박스 추가 -->
+        <label>
+            <input id="login-remember-me" type="checkbox" checked>
+            로그인 유지하기(remember-me)
+        </label>
+
+        <button id="btnLogin">로그인 (POST /api/auth/login)</button>
+        <button id="btnLogout">로그아웃 (POST /api/auth/logout)</button>
+    </div>
+    <div class="row small">
+        로그인 요청은 <code>application/x-www-form-urlencoded</code> 로 전송된다.
+    </div>
+
+    <h3>1-3) 내 정보 조회</h3>
+    <div class="row">
+        <button id="btnMe">/api/auth/me (@AuthenticationPrincipal)</button>
+        <button id="btnMe2">/api/auth/me2 (SecurityContext)</button>
+    </div>
+</section>
+
+<hr>
+
+<section id="sec-users">
+    <h2>2. 사용자 API 데모 (/api/users)</h2>
+
+    <h3>2-1) 사용자 생성 (회원가입)</h3>
+    <div class="row">
+        <label>username:
+            <input id="user-create-username" value="user2">
+        </label>
+        <label>email:
+            <input id="user-create-email" value="user2@example.com">
+        </label>
+        <label>password:
+            <input id="user-create-password" value="1234">
+        </label>
+        <label>role:
+            <select id="user-create-role">
+                <option value="">기본(USER)</option>
+                <option value="USER">USER</option>
+                <option value="ADMIN">ADMIN</option>
+            </select>
+        </label>
+        <button id="btnUserCreate">사용자 생성 (POST /api/users)</button>
+    </div>
+
+    <h3>2-2) 사용자 조회</h3>
+    <div class="row">
+        <label>id:
+            <input id="user-find-id" type="number" value="1">
+        </label>
+        <button id="btnUserFindById">단일 조회 (GET /api/users/{id})</button>
+    </div>
+
+    <div class="row">
+        <button id="btnUserFindAll">전체 조회 (GET /api/users) - ADMIN</button>
+        <span class="small">ADMIN 권한 필요 (hasRole('ADMIN'))</span>
+    </div>
+
+    <h3>2-3) 사용자 수정 / 삭제</h3>
+    <div class="row">
+        <label>id:
+            <input id="user-update-id" type="number" value="1">
+        </label>
+        <label>email:
+            <input id="user-update-email" value="changed@example.com">
+        </label>
+        <label>password:
+            <input id="user-update-password" type="password" value="">
+        </label>
+        <button id="btnUserUpdatePut">수정 (PUT /api/users/{id})</button>
+        <button id="btnUserUpdatePatch">부분수정 (PATCH /api/users/{id})</button>
+    </div>
+
+    <div class="row">
+        <label>id:
+            <input id="user-delete-id" type="number" value="1">
+        </label>
+        <button id="btnUserDelete">삭제 (DELETE /api/users/{id})</button>
+    </div>
+</section>
+
+<hr>
+
+<section id="sec-posts">
+    <h2>3. 포스트 API 데모 (/api/posts)</h2>
+
+    <h3>3-1) 포스트 생성</h3>
+    <div class="row">
+        <label>title:
+            <input id="post-create-title" value="샘플 제목">
+        </label>
+        <label>content:
+            <input id="post-create-content" value="샘플 내용">
+        </label>
+        <button id="btnPostCreate">포스트 생성 (POST /api/posts)</button>
+        <span class="small">인증된 사용자 필요 (@AuthenticationPrincipal)</span>
+    </div>
+
+    <h3>3-2) 포스트 조회</h3>
+    <div class="row">
+        <button id="btnPostFindAllVisible">공개 포스트 목록 (GET /api/posts)</button>
+    </div>
+    <div class="row">
+        <button id="btnPostFindAllAdmin">전체 포스트 목록 (includeBlind=true) - ADMIN</button>
+        <span class="small">관리자 권한 필요: includeBlind=true + ROLE_ADMIN</span>
+    </div>
+    <div class="row">
+        <label>id:
+            <input id="post-find-id" type="number" value="1">
+        </label>
+        <button id="btnPostFindById">단일 조회 (GET /api/posts/{id})</button>
+    </div>
+
+    <h3>3-3) 포스트 수정 / 블라인드 처리</h3>
+    <div class="row">
+        <label>id:
+            <input id="post-update-id" type="number" value="1">
+        </label>
+        <label>title:
+            <input id="post-update-title" value="수정된 제목">
+        </label>
+        <label>content:
+            <input id="post-update-content" value="수정된 내용">
+        </label>
+        <button id="btnPostUpdate">포스트 수정 (PUT /api/posts/{id})</button>
+    </div>
+
+    <div class="row">
+        <label>id:
+            <input id="post-blind-id" type="number" value="1">
+        </label>
+        <button id="btnPostToggleBlind">블라인드 토글 (PATCH /api/posts/{id}/blind) - ADMIN</button>
+    </div>
+</section>
+
+<hr>
+
+<section>
+    <h2>4. 응답 로그</h2>
+    <div class="row small">
+        최신 요청/응답을 JSON 형태로 출력한다.
+    </div>
+    <pre id="log-output">{}</pre>
+</section>
+
+<script>
+    // Axios 기본 설정
+    axios.defaults.withCredentials = true; // 세션 쿠키 전송
+    axios.defaults.headers.common["X-Requested-With"] = "XMLHttpRequest";
+    axios.defaults.xsrfCookieName = 'XSRF-TOKEN';
+    axios.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
+
+    const logOutput = document.getElementById("log-output");
+
+    function logResponse(title, res) {
+        const payload = {
+            title: title,
+            status: res.status,
+            statusText: res.statusText,
+            data: res.data
+        };
+        logOutput.textContent = JSON.stringify(payload, null, 2);
+    }
+
+    function logError(title, err) {
+        const payload = {
+            title: title,
+            message: err.message,
+            response: err.response ? {
+                status: err.response.status,
+                statusText: err.response.statusText,
+                data: err.response.data
+            } : null
+        };
+        logOutput.textContent = JSON.stringify(payload, null, 2);
+    }
+
+    // 1-1) CSRF 토큰
+    document.getElementById("btnFetchCsrf").addEventListener("click", () => {
+        axios.get("/api/auth/csrf-token")
+            .then(res => {
+                const token = res.data.token;
+                const headerName = res.data.headerName || "X-XSRF-TOKEN";
+                axios.defaults.headers.common[headerName] = token;
+                logResponse("CSRF 토큰 조회 완료", res);
+            })
+            .catch(err => logError("CSRF 토큰 조회 실패", err));
+    });
+
+    // 1-2) 로그인
+    document.getElementById("btnLogin").addEventListener("click", () => {
+        const username = document.getElementById("login-username").value;
+        const password = document.getElementById("login-password").value;
+        const remember = document.getElementById("login-remember-me").checked; // 리멤버미 체크 여부
+
+        const form = new URLSearchParams();
+        form.append("username", username);
+        form.append("password", password);
+
+        // 리멤버미 체크 시 remember-me 파라미터 추가 (기본 파라미터 이름)
+        if (remember) {
+            form.append("remember-me", "on");
+        }
+
+        axios.post("/api/auth/login", form, {
+            headers: { "Content-Type": "application/x-www-form-urlencoded" }
+        })
+            .then(res => logResponse("로그인 성공", res))
+            .catch(err => logError("로그인 실패", err));
+    });
+
+    // 1-2) 로그아웃
+    document.getElementById("btnLogout").addEventListener("click", () => {
+        axios.post("/api/auth/logout")
+            .then(res => logResponse("로그아웃 성공", res))
+            .catch(err => logError("로그아웃 실패", err));
+    });
+
+    // 1-3) 내 정보 me (@AuthenticationPrincipal)
+    document.getElementById("btnMe").addEventListener("click", () => {
+        axios.get("/api/auth/me")
+            .then(res => logResponse("내 정보 조회(me)", res))
+            .catch(err => logError("내 정보 조회(me) 실패", err));
+    });
+
+    // 1-3) 내 정보 me2 (SecurityContext)
+    document.getElementById("btnMe2").addEventListener("click", () => {
+        axios.get("/api/auth/me2")
+            .then(res => logResponse("내 정보 조회(me2)", res))
+            .catch(err => logError("내 정보 조회(me2) 실패", err));
+    });
+
+    // 2-1) 사용자 생성
+    document.getElementById("btnUserCreate").addEventListener("click", () => {
+        const username = document.getElementById("user-create-username").value;
+        const email = document.getElementById("user-create-email").value;
+        const password = document.getElementById("user-create-password").value;
+        const role = document.getElementById("user-create-role").value || null;
+
+        const payload = { username, email, password, role };
+
+        axios.post("/api/users", payload)
+            .then(res => logResponse("사용자 생성", res))
+            .catch(err => logError("사용자 생성 실패", err));
+    });
+
+    // 2-2) 사용자 단일 조회
+    document.getElementById("btnUserFindById").addEventListener("click", () => {
+        const id = document.getElementById("user-find-id").value;
+        axios.get(`/api/users/${id}`)
+            .then(res => logResponse("사용자 단일 조회", res))
+            .catch(err => logError("사용자 단일 조회 실패", err));
+    });
+
+    // 2-2) 전체 조회 (ADMIN)
+    document.getElementById("btnUserFindAll").addEventListener("click", () => {
+        axios.get("/api/users")
+            .then(res => logResponse("사용자 전체 조회", res))
+            .catch(err => logError("사용자 전체 조회 실패", err));
+    });
+
+    // 2-3) 사용자 수정 PUT
+    document.getElementById("btnUserUpdatePut").addEventListener("click", () => {
+        const id = document.getElementById("user-update-id").value;
+        const email = document.getElementById("user-update-email").value || null;
+        const password = document.getElementById("user-update-password").value || null;
+
+        const payload = { email, password };
+
+        axios.put(`/api/users/${id}`, payload)
+            .then(res => logResponse("사용자 수정 (PUT)", res))
+            .catch(err => logError("사용자 수정 (PUT) 실패", err));
+    });
+
+    // 2-3) 사용자 부분수정 PATCH
+    document.getElementById("btnUserUpdatePatch").addEventListener("click", () => {
+        const id = document.getElementById("user-update-id").value;
+        const email = document.getElementById("user-update-email").value || null;
+        const password = document.getElementById("user-update-password").value || null;
+
+        const payload = { email, password };
+
+        axios.patch(`/api/users/${id}`, payload)
+            .then(res => logResponse("사용자 수정 (PATCH)", res))
+            .catch(err => logError("사용자 수정 (PATCH) 실패", err));
+    });
+
+    // 2-3) 사용자 삭제
+    document.getElementById("btnUserDelete").addEventListener("click", () => {
+        const id = document.getElementById("user-delete-id").value;
+        axios.delete(`/api/users/${id}`)
+            .then(res => logResponse("사용자 삭제", res))
+            .catch(err => logError("사용자 삭제 실패", err));
+    });
+
+    // 3-1) 포스트 생성
+    document.getElementById("btnPostCreate").addEventListener("click", () => {
+        const title = document.getElementById("post-create-title").value;
+        const content = document.getElementById("post-create-content").value;
+        const payload = { title, content };
+
+        axios.post("/api/posts", payload)
+            .then(res => logResponse("포스트 생성", res))
+            .catch(err => logError("포스트 생성 실패", err));
+    });
+
+    // 3-2) 포스트 목록 (공개)
+    document.getElementById("btnPostFindAllVisible").addEventListener("click", () => {
+        axios.get("/api/posts")
+            .then(res => logResponse("공개 포스트 목록 조회", res))
+            .catch(err => logError("공개 포스트 목록 조회 실패", err));
+    });
+
+    // 3-2) 포스트 목록 (관리자 전체, includeBlind=true)
+    document.getElementById("btnPostFindAllAdmin").addEventListener("click", () => {
+        axios.get("/api/posts?includeBlind=true")
+            .then(res => logResponse("전체 포스트 목록 조회 (관리자)", res))
+            .catch(err => logError("전체 포스트 목록 조회 (관리자) 실패", err));
+    });
+
+    // 3-2) 포스트 단일 조회
+    document.getElementById("btnPostFindById").addEventListener("click", () => {
+        const id = document.getElementById("post-find-id").value;
+        axios.get(`/api/posts/${id}`)
+            .then(res => logResponse("포스트 단일 조회", res))
+            .catch(err => logError("포스트 단일 조회 실패", err));
+    });
+
+    // 3-3) 포스트 수정
+    document.getElementById("btnPostUpdate").addEventListener("click", () => {
+        const id = document.getElementById("post-update-id").value;
+        const title = document.getElementById("post-update-title").value;
+        const content = document.getElementById("post-update-content").value;
+        const payload = { title, content };
+
+        axios.put(`/api/posts/${id}`, payload)
+            .then(res => logResponse("포스트 수정", res))
+            .catch(err => logError("포스트 수정 실패", err));
+    });
+
+    // 3-3) 포스트 블라인드 토글 (ADMIN)
+    document.getElementById("btnPostToggleBlind").addEventListener("click", () => {
+        const id = document.getElementById("post-blind-id").value;
+        axios.patch(`/api/posts/${id}/blind`)
+            .then(res => logResponse("포스트 블라인드 토글", res))
+            .catch(err => logError("포스트 블라인드 토글 실패", err));
+    });
+</script>
+</body>
+</html>

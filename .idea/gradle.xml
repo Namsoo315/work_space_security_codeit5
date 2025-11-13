@@ -57,6 +57,15 @@
           </set>
         </option>
       </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/08_spring_session_advanced" />
+        <option name="gradleJvm" value="corretto-17" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/08_spring_session_advanced" />
+          </set>
+        </option>
+      </GradleProjectSettings>
     </option>
   </component>
 </project>

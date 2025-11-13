@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: spring-security-blog
+
+  datasource:
+    url: jdbc:h2:file:~/session-practice;AUTO_SERVER=TRUE;MODE=PostgreSQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  # H2 웹 콘솔 사용 시
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+  # Spring Session JDBC 사용
+  session:
+    jdbc:
+      initialize-schema: always  # SPRING_SESSION 테이블 자동 생성
+
+  # SQL 스크립트로 Remember-Me 테이블 생성(권장)
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+blog:
+  admin:
+    username: admin
+    email: admin@blog.com
+    password: admin
+  user:
+    username: user
+    email: user@blog.com
+    password: 1234
+
+logging:
+  level:
+    com.sb02.practice.security: DEBUG
+    org.springframework.security: TRACE
+    org.springframework.security.web.csrf: DEBUG
